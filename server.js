@@ -36,10 +36,10 @@ DB.once("open", () => console.log("✅ Connected to MongoDB Cloud Database"));
 // =======================================================
 // 🧩 MIDDLEWARE
 // =======================================================
-// Allow requests from your frontend
+
 app.use(cors({
-  origin: "http://localhost:5173", // your frontend URL
-  credentials: true, // if you want to allow cookies or auth headers
+  origin: process.env.CLIENT_URL,
+  credentials: true, 
 }));
 
 app.use(express.json());
