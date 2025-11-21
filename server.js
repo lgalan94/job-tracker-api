@@ -3,11 +3,12 @@ require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const session = require("express-session");
+const MongoStore = require("connect-mongo");
 const passport = require("passport");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 
-// Load passport config (MUST come after dotenv)
+// Load passport config
 require("./config/passport");
 
 const app = express();
@@ -37,18 +38,38 @@ DB.once("open", () => console.log("✅ Connected to MongoDB Cloud Database"));
 // 🧩 MIDDLEWARE
 // =======================================================
 
-app.use(cors({
-  origin: process.env.CLIENT_URL,
-  credentials: true, 
-}));
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL,
+    credentials: true,
+  })
+);
 
 app.use(express.json());
 app.use(cookieParser());
+
+// =======================================================
+// 🗃️ SESSION WITH CONNECT-MONGO
+// =======================================================
 app.use(
   session({
     secret: process.env.SECRET_KEY,
     resave: false,
     saveUninitialized: false,
+
+    store: MongoStore.create({
+      mongoUrl: process.env.DATABASE_URL,
+      collectionName: "sessions",
+      ttl: 60 * 60 * 24 * 7, // 7 days
+      autoRemove: "native",
+    }),
+
+    cookie: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+    },
   })
 );
 
